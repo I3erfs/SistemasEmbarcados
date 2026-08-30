@@ -1,35 +1,130 @@
 // C++ code
 /* 
-Uso do monitor serial para mudar cor dos LEDs de acordo com escolha do usuário
+Uso do monitor serial para mudar cor dos LEDs de acordo com escolha de sorvete e calda do usuário
 void setup()
 */
+
+void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 }
 
-bool Menu = false;
+enum Estados{
+  MenuSorvete, 
+  MenuCalda,
+  Final
+};
+
+int Estado=MenuSorvete;
+char sabor;
+int LedChocolate=8;
+int LedMorango=12;
+int LedCalda=13;
+bool Menu=false;
+bool MenuDaCalda;
 
 void loop()
 {
-  if (!Menu){
-  Serial.println("Maquina de Sorvetes\n-Presssione(a) para sorvete de morango\n-Pressione (b) para sorvete de chocolate");
-  Menu = true;
-  }
-  if (Serial.available()){
-    char sabor = Serial.read();
-    switch (sabor){
-    	case 'b': 
-      		Serial.println("Sorvete de chocolate escolhido");
-      		break;
-        case 'a': 
-            Serial.println("Sorvete de morango escolhido");
-      		break;
+  switch (Estado){
+    case MenuSorvete:
+    digitalWrite(LedChocolate, LOW);
+    digitalWrite(LedMorango, LOW);
+    digitalWrite(LedCalda, LOW);
+      if(!Menu){
+        Serial.println("Maquina de Sorvetes\n-Presssione (a) para sorvete de morango\n-Pressione (b) para sorvete de chocolate");
+        Menu = true;
+      }
+      if (Serial.available()){
+         sabor = Serial.read();
+         switch (sabor){
+            case 'b': 
+                Serial.println("Sorvete de chocolate escolhido");
+           		digitalWrite(LedChocolate, HIGH);
+                Estado=MenuCalda;
+           		Menu=false;
+                break;
+            case 'a': 
+                Serial.println("Sorvete de morango escolhido");
+           		digitalWrite(LedMorango,HIGH);
+                Estado=MenuCalda;
+                Menu=false;
+                break;
+            default:
+                Serial.println("Erro");
+           		Menu=false;
+        	}
+        }
+        delay(500);
+        break;
+    case MenuCalda:
+     if(!Menu){
+        Serial.println("Escolha da Calda");
+        Serial.println("Pressione (a) para incluir calda de chocolate");
+        Serial.println("Pressione (b) para nao incluir calda");
+       	Menu=true;
+      }
+     if (Serial.available()){
+      char calda;
+      calda = Serial.read(); 
+      switch (calda){
+                  case 'a':
+                    Serial.print("Sorvete de ");
+                    Serial.print(ImprimeSabor(sabor));
+                    Serial.println("com calda");
+        			digitalWrite(LedCalda,HIGH);
+        			Estado=Final;
+                   	Menu=false;
+                    break;
+                  case 'b':
+                    Serial.print("Sorvete de ");
+                    Serial.print(ImprimeSabor(sabor));
+                    Serial.println("sem calda"); 
+        			Estado=Final;
+                   	Menu=false;
+                    break;
+                  default:
+                    Serial.println("Erro");
+           			Menu=false;
+      }
+    }
+    break;
+	case Final:
+        if(!Menu){
+          Serial.println("Vai mais um sorvetinho?");
+          Serial.println("Pressione (s) para sim");
+          Serial.println("Pressione (n) para nao");
+          Menu=true;
+        }
+        if (Serial.available()){
+          char adicional;
+          adicional=Serial.read();
+          switch (adicional){
+            case 's':
+              Estado=MenuSorvete;
+              Menu=false;
+              break;
+            case 'n':
+              Serial.println("Voce que sabe, quem esta perdendo vai ser voce");
+              break;
+            default:
+              Serial.println("Digita certo, criatura");
+              break;
+          }
+        }
+    	break;
+	default:
+		Serial.println("Deu erro");
+ }
+}                             
+    String ImprimeSabor(char sabor){
+      switch(sabor){
+        case 'a':
+        	return "morango ";
+        case 'b': 
+        	return "chocolate ";
         default:
-      		Serial.println("Erro");
-      		Menu = false;
-    	}
-    delay(500);
-  }
-               
-}
+        	return "desconhecido ";
+      }
+    }
+    

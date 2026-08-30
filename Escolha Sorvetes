@@ -1,0 +1,33 @@
+// C++ code
+// Uso do monitor serial para mudar cor dos LEDs de acordo com escolha do usuário
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+}
+
+bool Menu = false;
+
+void loop()
+{
+  if (!Menu){
+  Serial.println("Maquina de Sorvetes\n-Presssione(a) para sorvete de morango\n-Pressione (b) para sorvete de chocolate");
+  Menu = true;
+  }
+  if (Serial.available()){
+    char sabor = Serial.read();
+    switch (sabor){
+    	case 'b': 
+      		Serial.println("Sorvete de chocolate escolhido");
+      		break;
+        case 'a': 
+            Serial.println("Sorvete de morango escolhido");
+      		break;
+        default:
+      		Serial.println("Erro");
+      		Menu = false;
+    	}
+    delay(500);
+  }
+               
+}

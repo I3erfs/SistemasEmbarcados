@@ -1,0 +1,139 @@
+// C++ code
+/*
+Implementação da lógica de um semáforo usando monitor serial, LEDs e um botão
+*/
+
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(7, INPUT);
+  Serial.begin(9600);
+}
+
+enum Estados{
+  Verde,
+  Amarelo,
+  Vermelho
+};
+
+int Estado = Verde;
+const long tempoVerde = 10000;
+const long tempoAmarelo = 5000;
+const long tempoVermelho = 8000;
+unsigned long tempoInicial=0;
+unsigned long tempoAtual;
+const int botaoPin=7;
+int estadoBotao = LOW;
+int ultimaLeituraBotao = LOW;
+unsigned long ultimoTempoBotao = 0;
+unsigned long delayDebounce = 50;
+int botaoAcionado=0;
+int soma = 0;
+int jaPressionado=0;
+
+void loop()
+{
+  switch (Estado){
+    case Verde:      
+    	if(tempoInicial==0){
+    		digitalWrite(11,HIGH);
+          	digitalWrite(3,HIGH);
+      		tempoInicial=millis();
+    	}
+        tempoAtual=millis();
+        int leitura;
+    	leitura = digitalRead(botaoPin);
+    	if(leitura!=ultimaLeituraBotao){
+          	Serial.println(leitura);
+      		ultimoTempoBotao=millis();
+        }
+        if(millis()-ultimoTempoBotao>delayDebounce){
+              if(leitura!=estadoBotao){
+                estadoBotao=leitura;
+              	botaoAcionado = 1;
+                Serial.println("epa");
+                if (estadoBotao == HIGH && jaPressionado==0){
+                	Serial.println("oi");
+                    Serial.println("tempoverde");
+                  	Serial.println(tempoVerde);
+                    Serial.println("tempoatual");
+                  	Serial.println(tempoAtual);
+                    Serial.println("tempoinicial");
+                  	Serial.println(tempoInicial);
+              		soma = (tempoVerde-(tempoAtual-tempoInicial))/2;
+                    Serial.println(soma);
+                    jaPressionado=1;
+                }
+         	  }
+         }
+         ultimaLeituraBotao=leitura;
+         if (tempoAtual-tempoInicial+soma>tempoVerde){
+     		 Estado=Amarelo;
+     		 digitalWrite(11,LOW);
+          	 tempoInicial=0;
+          	 botaoAcionado = 0;
+          	 soma = 0;
+          	 ultimaLeituraBotao=LOW;
+           	 jaPressionado=0;
+    	}
+     	break;
+     case Amarelo:
+        if(tempoInicial==0){ //seria melhor usar uma variável booleana ao invés da própria variável de tempo (vai que tempo=0)
+    		digitalWrite(12,HIGH);
+      		tempoInicial=millis();
+    	}	
+        tempoAtual=millis();
+        if (tempoAtual-tempoInicial>tempoAmarelo){
+     		 Estado=Vermelho;
+     		 digitalWrite(12,LOW);
+          	 digitalWrite(3,LOW);
+             tempoInicial=millis();
+        }
+   		break;
+    case Vermelho:
+        digitalWrite(13,HIGH);
+        digitalWrite(2,HIGH);
+        tempoAtual=millis();
+    	leitura = digitalRead(botaoPin);
+    	if(leitura!=ultimaLeituraBotao){
+          	Serial.println(leitura);
+      		ultimoTempoBotao=millis();
+        }
+        if(millis()-ultimoTempoBotao>delayDebounce){
+              if(leitura!=estadoBotao){
+                estadoBotao=leitura;
+                Serial.println(estadoBotao);
+              	botaoAcionado = 1;
+                Serial.println("epa");
+                if (estadoBotao == HIGH && jaPressionado==0){
+                	Serial.println("oi");
+                    Serial.println("tempoverde");
+                  	Serial.println(tempoVerde);
+                    Serial.println("tempoatual");
+                  	Serial.println(tempoAtual);
+                    Serial.println("tempoinicial");
+                  	Serial.println(tempoInicial);
+              		soma = 5000;
+                    Serial.println(soma);
+                    jaPressionado=1;
+                }
+         	  }
+         }
+         ultimaLeituraBotao=leitura;
+        if (tempoAtual-tempoInicial>(tempoVermelho+soma)){
+     		 Estado=Verde;
+     		 digitalWrite(13,LOW);
+             digitalWrite(2,LOW);
+             tempoInicial=0;
+          	 soma=0;
+          	 botaoAcionado = 0;
+             jaPressionado=0;
+        }
+    	break;
+  }
+}

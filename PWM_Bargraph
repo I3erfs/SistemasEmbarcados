@@ -1,0 +1,223 @@
+/*
+Uso da técnica PWM, do sensor LM-35 e de LESs para construir um Bargraph de temperatura 
+*/
+
+// C++ code
+void setup()
+{
+  Serial.begin(9600);
+  analogReference(INTERNAL);
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(9, OUTPUT);
+}
+
+const float LSB = 0.00107;
+const int LM35_pin = 0;
+const int buzz_pin = 9;
+unsigned long tempo_inicial = 0;
+const long intervalo = 1000;
+float temp_inicial;
+unsigned long tempo_inicial_;
+unsigned long tempo_atual_;
+int leitura = 0;
+int pwm = 0;
+float dif_;
+float vet [10];
+float total=0.00;
+int i = 0;
+int cont = 0;
+
+void loop()
+{
+  float adc = analogRead(LM35_pin);
+  float V = adc*LSB;
+  float T = 100*V;
+  if (leitura==0){
+    temp_inicial = T;
+    leitura=1;
+  }
+  unsigned long tempo_atual = millis();
+  if(tempo_atual-tempo_inicial>+intervalo){
+    tempo_inicial=tempo_atual;
+    digitalWrite(buzz_pin, LOW);
+  	//adc = analogRead(LM35_pin);
+    //Serial.println(adc);
+    //V = adc * LSB;
+    //Serial.println(Vin);
+    float temp_atual = T;
+    Serial.println(T);
+   	if(i<10){
+      	total=total-vet[i];
+    	vet[i]=temp_atual;
+      	total=total+temp_atual;
+        i++;
+    }
+    else{
+        i=0;
+      	dif_=temp_atual-vet[i];
+      	vet[i]=temp_atual;
+      	total=total+dif_;
+      	i++;
+    }
+    if(cont<10){
+    	cont++;
+    }
+    float media=total/cont;
+    if(media>temp_inicial){
+      dif_ = media-temp_inicial;
+      Serial.println(dif_);
+      int dif = dif*100;
+      Serial.println(dif_);
+      if(dif<200){
+      	pwm = map(dif,0, 200, 0, 255);
+        analogWrite(10, pwm);
+      }
+      else{
+        if(dif<400){
+        	pwm = map(dif,200, 400, 0, 255);
+          	analogWrite(11, pwm);
+        }
+        else{
+        	pwm = map(dif, 400, 600, 0, 255);
+          	analogWrite(12, pwm);
+          	if(dif>=6){
+              tempo_atual_=millis();
+              if (tempo_atual_-tempo_inicial_>(intervalo*2)){
+                tempo_inicial_=tempo_atual_;
+              	digitalWrite(buzz_pin, HIGH);
+                /*
+                if (buzz==HIGH){
+                  buzz=LOW;
+              	  analogWrite(buzz_pin, LOW);
+                }
+                else{
+                	buzz=HIGH;
+                  	analogWrite(buzz_pin, HIGH);
+                    */
+              }
+            }
+        }
+      }
+    }
+  }
+}
+ 
+
+// Código que apresentei:
+// C++ code
+//
+void setup()
+{
+  Serial.begin(9600);
+  analogReference(INTERNAL1V1);
+  pinMode(10, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(9, OUTPUT);
+}
+
+const float LSB = 0.00107;
+const int LM35_pin = 0;
+const int buzz_pin = 9;
+unsigned long tempo_inicial = 0;
+const long intervalo = 1000;
+float temp_inicial=100.00;
+unsigned long tempo_inicial_;
+unsigned long tempo_atual_;
+int leitura = 0;
+int pwm = 0;
+float dif_;
+float vet [10];
+float total=0.00;
+int i = 0;
+int cont = 0;
+
+void loop()
+{
+  float adc = analogRead(LM35_pin);
+  float V = adc*LSB;
+  float T = 100*V;
+  //if (leitura==0){
+    //temp_inicial = T;
+    //Serial.println("temp inicial:");
+    //Serial.println(temp_inicial);
+    //leitura=1;
+  //}
+  unsigned long tempo_atual = millis();
+  if(tempo_atual-tempo_inicial>+intervalo){
+    tempo_inicial=tempo_atual;
+    digitalWrite(buzz_pin, LOW);
+  	//adc = analogRead(LM35_pin);
+    //Serial.println(adc);
+    //V = adc * LSB;
+    //Serial.println(Vin);
+    float temp_atual = T;
+    Serial.println(T);
+   	if(i<10){
+      	total=total-vet[i];
+    	vet[i]=temp_atual;
+      	total=total+temp_atual;
+        i++;
+    }
+    else{
+        i=0;
+      	dif_=temp_atual-vet[i];
+      	vet[i]=temp_atual;
+      	total=total+dif_;
+      	i++;
+    }
+    if(cont<10){
+    	cont++;
+    }
+    float media=total/cont;
+    if (leitura==0 && cont==10){
+      temp_inicial = media;
+      Serial.println("temp inicial:");
+      Serial.println(temp_inicial);
+      leitura=1;
+    }
+    if(media>temp_inicial){
+      dif_ = media-temp_inicial;
+      Serial.println(dif_);
+      int dif = dif_*100;
+      Serial.println("diferença");
+      Serial.println(dif);
+      Serial.println(dif_);
+      if(dif<50){
+      	pwm = map(dif,0, 50, 0, 255);
+        analogWrite(10, pwm);
+        analogWrite(6, 0);
+      }
+      else{
+        if(dif<100){
+        	pwm = map(dif,50, 100, 0, 255);
+          	analogWrite(6, pwm);
+            Serial.println("passou segundo");
+            analogWrite(5, 0);
+        }
+        else{
+        	pwm = map(dif, 100, 150, 0, 255);
+          	analogWrite(5, pwm);
+          	if(dif>=6){
+              tempo_atual_=millis();
+              if (tempo_atual_-tempo_inicial_>(intervalo*2)){
+                tempo_inicial_=tempo_atual_;
+              	digitalWrite(buzz_pin, HIGH);
+                /*
+                if (buzz==HIGH){
+                  buzz=LOW;
+              	  analogWrite(buzz_pin, LOW);
+                }
+                else{
+                	buzz=HIGH;
+                  	analogWrite(buzz_pin, HIGH);
+                    */
+              }
+            }
+        }
+      }
+    }
+  }
+}

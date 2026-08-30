@@ -1,0 +1,52 @@
+/*
+Utilização de um resistor RDL para definir uma escala de luminosidade
+*/
+//C++ code
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(10, OUTPUT);
+}
+
+const int LDR_pin = 0;
+unsigned long tempo_inicial = 0;
+const long intervalo = 1000;
+const float LSB = 0.00488; //Vref:1023
+
+void loop()
+{
+  unsigned long tempo_atual = millis();
+  if(tempo_atual-tempo_inicial>+intervalo){
+    tempo_inicial=tempo_atual;
+  	float adc = analogRead(LDR_pin);
+    //Serial.println(adc);
+    float Vin = adc * LSB;
+    //Serial.println(Vin);
+    float Rldr=((5.0*10000.0)/Vin)-10000.0;
+    //Serial.println(Rldr);
+    float logaritmo = log10(Rldr);
+    //Serial.println(logaritmo);
+    const float maior = 6.23;
+    const float menor = 3.71;
+    float intervalo = (maior - menor)/4;
+    if (logaritmo>=3.80){
+      Serial.println(menor+3*intervalo);
+      Serial.println("Luminosidade baixa");
+      digitalWrite(10, HIGH);
+    }
+    else{
+      digitalWrite(10,LOW);
+      if (logaritmo>=3.60){
+      	Serial.println("Luminosidade média-baixa") ;                    
+      }
+      else{
+        if (logaritmo>=3.30){
+        	Serial.println("Luminosidade média-alta");
+        }
+        else{
+        	Serial.println("Luminosidade alta");
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,86 @@
+/*
+Uso do sensor LM-35 e um vetor circular para guardar temperaturas e realizar a média entre elas
+*/
+//C++ Code
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+  analogReference(INTERNAL);
+}
+
+
+int imprime;
+char letra;
+const float LSB = 0.00107;
+const float conv = 0.107;
+float vet [5];
+int i = 0;
+unsigned long tempo_inicial=0;
+const long intervalo=500;
+unsigned long tempo_impressao=0;
+float media;
+float T;
+
+void loop()
+{
+  unsigned long tempo_atual = millis();
+  if (tempo_atual - tempo_inicial>=intervalo){
+    tempo_inicial = tempo_atual;
+    float total=0;
+    int adc = analogRead(0);
+    float V = adc*LSB;
+	T = 100*V; //para tinkercad preciso subtrair 50
+    //float T = conv*adc;
+    vet[i]=T;
+    i=(i+1)%5;
+    int j;
+    for (j=0;j<5;j++){
+      //Serial.println(vet[j]);
+      total=total+vet[j];
+      if(vet[j]==0.00)
+        break;
+    }
+  	media = total/j;
+    //Serial.println(media);
+    //Serial.println(T);
+    //Serial.print("Valor lido: ");
+    //Serial.println(adc);
+    //Serial.print("Tensão: ");
+    //Serial.println(V);
+    //Serial.print("Temperatura: ");
+    //Serial.println(T);
+  }
+  tempo_atual = millis();
+  if(imprime==0 && (tempo_atual-tempo_impressao)>=intervalo){
+    Serial.println("Selecione: \n'a' para valor da temperatura atual,\n'b' para ultimo valor lido e  \n'c' para os dois");
+    imprime=1;
+  	}
+    if (Serial.available()){
+    	letra=Serial.read();
+      switch (letra){
+      	case 'a':
+        	Serial.println("Aqui esta a media das ultimas cinco temperaturas lidas:");
+            Serial.println(media);
+        	imprime=0;
+        	tempo_impressao = millis();
+        	break;
+        case 'b':
+            Serial.println("Aqui esta a ultima temperatura lida:");
+            Serial.println(media);
+        	imprime=0;
+        	tempo_impressao =  millis();
+        	break;
+        case 'c':
+            Serial.println("Aqui esta a utima temperatura lida e a media das ultimas cinco leituras:");
+        	Serial.println(T);
+            Serial.println(media);
+        	imprime=0;
+        	tempo_impressao = millis();
+        	break;
+        default:
+        	break;
+     	}
+  }
+}
+  

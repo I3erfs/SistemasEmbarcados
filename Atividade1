@@ -1,6 +1,8 @@
 // C++ code
-// Uso do monitor serial para mudar cor dos LEDs de acordo com escolha do usuário
+/* 
+Uso do monitor serial para mudar cor dos LEDs de acordo com escolha do usuário
 void setup()
+*/
 {
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);

@@ -1,0 +1,88 @@
+// C++ code
+/*
+Uso de LEDs, um buzzer e o monitor serial para implementação da lógica de um microondas
+*/
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(8, OUTPUT);
+  Serial.begin(9600);
+}
+
+enum Estados{
+  Menu,
+  Leitura,
+  Esquentando,
+  Fim
+};
+
+int Estado = Menu;
+int tempo;
+unsigned long tempoInicial=0;
+const long umSegundo=1000;
+bool aux1=HIGH;
+bool aux2=LOW;
+int cont=0;
+
+
+void loop()
+{
+  switch (Estado){
+    case Menu:
+    	Serial.println("Microondas\n");
+  		Serial.println("Digite o tempo desejado em segundos e aperte enter");
+    	Estado = Leitura;
+    	break;
+    case Leitura:
+      if (Serial.available()){
+        tempo=Serial.parseInt();
+        Serial.print("Tempo escolhido: ");
+        Serial.print(tempo);
+        Serial.println("s");
+        Estado=Esquentando;
+      }
+        break;
+case Esquentando:
+        unsigned long tempoAtual;
+    	tempoAtual=millis();
+        if (tempoAtual-tempoInicial>umSegundo && tempo>=0){
+          tempoInicial=tempoAtual;
+          if(tempo>0){
+           Serial.print(tempo);
+           Serial.println("s... ");
+          }
+          tempo--;
+          if(aux1==HIGH){
+            aux1 = LOW;
+          	aux2 = HIGH;
+          }
+          else{
+              aux1 = HIGH;
+          	  aux2 = LOW;
+          }
+        }
+      digitalWrite(13, aux1);
+    	digitalWrite(12, aux2);
+        if(tempo==-1){
+          Estado=Fim;
+          cont=0;
+          digitalWrite(13, LOW);
+    	    digitalWrite(12, LOW);
+         }
+    	break;
+    case Fim:
+    	if(cont==0)
+    		Serial.println("FIM!");
+    	digitalWrite(8, HIGH);
+    	delay(1000);
+    	digitalWrite(8, LOW);
+    	delay(1000);
+    	cont++;
+    	if(cont>=3){
+      		Estado=Menu;
+        }
+    		break;
+  }
+}
